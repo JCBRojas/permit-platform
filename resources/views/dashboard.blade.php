@@ -33,12 +33,13 @@
     </div>
 
     <script>
-        window.Echo.channel('pacientes')
+         window.Echo.channel('pacientes')
             .listen('PacienteActualizado', (e) => {
                 const list = document.getElementById('pacientes-list');
                 const item = document.createElement('li');
-                item.textContent = `${e.paciente.nombre} - Habitación ${e.paciente.habitacion}`;
+                item.textContent = `${e.paciente.namePatient} - Habitación ${e.paciente.habitation}`;
                 list.appendChild(item);
             });
+
     </script>
 </x-app-layout>
