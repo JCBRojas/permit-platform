@@ -9,7 +9,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
 
-                @can('createDiets')
+                {{-- @can('createDiets') --}}
                 <button type="button" class="btn btn-success waves-effect waves-light" data-toggle="modal"
                     data-target=".bs-example-modal-lg">Crear</button>
 
@@ -70,35 +70,38 @@
                             <td class="px-3 py-2 text-xs">{{ $diet->currentVersion->changes ?? '' }}</td>
                             <td class="px-3 py-2 text-xs text-right">
                                 <button type="button" class="btn btn-xs btn-primary" data-toggle="modal"
-                    data-target=".edit-diet{{ $diet->id }}-modal-lg">
+                                    data-target=".edit-diet{{ $diet->id }}-modal-lg">
                                     <span class=" mdi mdi-square-edit-outline ">edit</span>
                                 </button>
-                                    <div class="modal fade edit-diet{{ $diet->id }}-modal-lg  text-left" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
-        aria-hidden="true" style="display: none;">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="myLargeModalLabel">Editar Dieta</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                </div>
-                <div class="modal-body">
-                    <form action="{{ route('dietas.update', ['diet' => $diet->id]) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <x-form-diet :diet="$diet"/>
-                    </form>
+                                <div class="modal fade edit-diet{{ $diet->id }}-modal-lg  text-left" tabindex="-1"
+                                    role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true"
+                                    style="display: none;">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h4 class="modal-title" id="myLargeModalLabel">Editar Dieta</h4>
+                                                <button type="button" class="close" data-dismiss="modal"
+                                                    aria-hidden="true">×</button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form action="{{ route('dietas.update', ['diet' => $diet->id]) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <x-form-diet :diet="$diet" />
+                                                </form>
 
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
+                                            </div>
+                                        </div><!-- /.modal-content -->
+                                    </div><!-- /.modal-dialog -->
+                                </div><!-- /.modal -->
                                 {{-- <button type="button" class="btn btn-xs btn-danger">Eliminar</button> --}}
                             </td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
-                @endcan
+                {{-- @endcan --}}
             </div>
         </div>
     </div>
@@ -115,7 +118,7 @@
                 <div class="modal-body">
                     <form action="{{ route('dietas.create') }}" method="POST">
                         @csrf
-                        <x-form-diet :diet="null"/>
+                        <x-form-diet :diet="null" />
                     </form>
 
                 </div>
