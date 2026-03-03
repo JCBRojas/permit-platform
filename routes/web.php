@@ -26,12 +26,11 @@ Route::middleware([
     Route::get('/dashboard', function () {
 
         $diets = App\Models\Diet::all();
-        if (Auth::user()->hasRole('despachador')) {
+        if (Auth::user()->id === 2) {
             return view('dashboard-dispatcher');
         }else {
             return view('dashboard', compact('diets'));
         }
-        // return view('dashboard-live');
     })->name('dashboard');
 
     Route::post('/dietas', [App\Http\Controllers\DietController::class, 'createDiet'])->name('dietas.create');

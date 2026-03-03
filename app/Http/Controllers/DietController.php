@@ -2,13 +2,10 @@
 
 namespace App\Http\Controllers;
 
-// use App\Events\DietActualizado;
-
 use App\Http\Requests\StoreDietRequest;
 use App\Http\Requests\StoreDietVersionRequest;
 use App\Models\Diet;
 use App\Services\DietService;
-// use Illuminate\Http\Request;
 
 class DietController extends Controller
 {
