@@ -1,9 +1,9 @@
 <x-app-layout>
-    <x-slot name="header">
+    {{-- <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Dashboard') }}
         </h2>
-    </x-slot>
+    </x-slot> --}}
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -31,22 +31,13 @@
                     </thead>
 
                     <tbody class="divide-y divide-gray-200">
-                        @foreach ($pacientes as $paciente)
+                        @foreach ($diets as $diet)
                         <tr>
-                            <td class="px-3 py-2 text-xs">{{ $paciente->id }}</td>
-                            <td class="px-3 py-2 text-xs">{{ $paciente->habitation }}</td>
-                            <td class="px-3 py-2 text-xs">{{ $paciente->namePatient }}</td>
+                            <td class="px-3 py-2 text-xs">{{ $diet->id }}</td>
+                            <td class="px-3 py-2 text-xs">{{ $diet->habitation }}</td>
+                            <td class="px-3 py-2 text-xs">{{ $diet->name_patient }}</td>
                             <td class="px-3 py-2 text-xs">
-                                @forelse ($paciente->time_food_array as $item)
-                                <small class="badge badge-light-success">
-                                    {{ ucfirst(str_replace('_', ' ', $item)) }}
-                                </small>
-                                @empty
-                                <span class="text-gray-400">N/A</span>
-                                @endforelse
-                            </td>
-                            <td class="px-3 py-2 text-xs">
-                                @forelse ($paciente->consistency_array as $item)
+                                @forelse ($diet->currentVersion->timeFood ?? [] as $item)
                                 <small class="badge badge-light-info">
                                     {{ ucfirst(str_replace('_', ' ', $item)) }}
                                 </small>
@@ -55,7 +46,16 @@
                                 @endforelse
                             </td>
                             <td class="px-3 py-2 text-xs">
-                                @forelse ($paciente->specifications_array as $item)
+                                @forelse ($diet->currentVersion->consistency ?? [] as $item)
+                                <small class="badge badge-light-info">
+                                    {{ ucfirst(str_replace('_', ' ', $item)) }}
+                                </small>
+                                @empty
+                                <span class="text-gray-400">N/A</span>
+                                @endforelse
+                            </td>
+                            <td class="px-3 py-2 text-xs">
+                                @forelse ($diet->currentVersion->specifications ?? [] as $item)
                                 <small class="badge badge-light-primary">
                                     {{ ucfirst(str_replace('_', ' ', $item)) }}
                                 </small>
@@ -63,20 +63,36 @@
                                 <span class="text-gray-400">N/A</span>
                                 @endforelse
                             </td>
-                            <td class="px-3 py-2 text-xs">{{ $paciente->observations }}</td>
+                            <td class="px-3 py-2 text-xs">{{ $diet->currentVersion->observations ?? '' }}</td>
                             <td class="px-3 py-2 text-xs">
-                                @if ($paciente->isolation)
-                                Sí
-                                @else
-                                No
-                                @endif
+                                {{ $diet->currentVersion->isolation ?? '' }}
                             </td>
-                            <td class="px-3 py-2 text-xs">{{ $paciente->changes }}</td>
+                            <td class="px-3 py-2 text-xs">{{ $diet->currentVersion->changes ?? '' }}</td>
                             <td class="px-3 py-2 text-xs text-right">
-                                <button type="button" class="btn btn-xs btn-primary">
-                                    <i class=" mdi mdi-square-edit-outline "></i>
+                                <button type="button" class="btn btn-xs btn-primary" data-toggle="modal"
+                    data-target=".edit-diet{{ $diet->id }}-modal-lg">
+                                    <span class=" mdi mdi-square-edit-outline ">edit</span>
                                 </button>
-                                <button type="button" class="btn btn-xs btn-danger">Eliminar</button>
+                                    <div class="modal fade edit-diet{{ $diet->id }}-modal-lg  text-left" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
+        aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myLargeModalLabel">Editar Dieta</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('dietas.update', ['diet' => $diet->id]) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <x-form-diet :diet="$diet"/>
+                    </form>
+
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+                                {{-- <button type="button" class="btn btn-xs btn-danger">Eliminar</button> --}}
                             </td>
                         </tr>
                         @endforeach
@@ -93,72 +109,13 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="myLargeModalLabel">Large modal</h4>
+                    <h4 class="modal-title" id="myLargeModalLabel">Registrar Dieta</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 </div>
                 <div class="modal-body">
-                    <form action="{{ route('pacientes.save') }}" method="POST">
+                    <form action="{{ route('dietas.create') }}" method="POST">
                         @csrf
-
-                        <label for="habitation">Habitación</label>
-                        <input type="text" name="habitation" placeholder=""
-                            class="w-full border rounded px-2 py-1 mb-1">
-
-                        <label for="namePatient">Nombre del Paciente</label>
-                        <input type="text" name="namePatient" placeholder=""
-                            class="w-full border rounded px-2 py-1 mb-1">
-
-                        <label for="timeFood">Tiempo de Comida</label>
-                        <select class="selectpicker form-control mb-1" name="timeFood[]" multiple data-style="btn-pink">
-                            <option value="desayuno">Desayuno</option>
-                            <option value="almuerzo">Almuerzo</option>
-                            <option value="cena">Cena</option>
-                            <option value="fraccionada">Fraccionada</option>
-                        </select>
-
-                        <label for="consistency">Consistencia</label>
-                        <select class="selectpicker form-control mb-1" name="consistency[]" multiple
-                            data-style="btn-light">
-                            <option value="liquida_completa">Líquida Completa</option>
-                            <option value="liquida_clara">Líquida Clara</option>
-                            <option value="muy_blanda">Muy Blanda</option>
-                            <option value="blanda_mecanica">Blanda mecánica</option>
-                            <option value="supraglotica">Supraglótica</option>
-                            <option value="normal">Normal</option>
-                        </select>
-
-                        <label for="specifications">Especificaciones</label>
-                        <select class="selectpicker form-control mb-1" name="specifications[]" multiple
-                            data-style="btn-primary">
-                            <option value="hipoglucida">Hipoglúcida</option>
-                            <option value="hiperproteica">Hiperprotéica</option>
-                            <option value="hiposodica">Hiposódica</option>
-                            <option value="hipograsa">Hipograsa</option>
-                            <option value="astringente">Astringente</option>
-                            <option value="alta_en_fibra">Alta en fibra</option>
-                            <option value="sin_lacteos">Sin lácteos</option>
-                            <option value="sin_irritantes">Sin irritantes</option>
-                            <option value="hipercalorica">Hipercalórica</option>
-                        </select>
-                        <label for="observations">Observaciones</label>
-                        <input type="text" name="observations" placeholder=""
-                            class="w-full border rounded px-2 py-1 mb-1">
-
-                        <label for="isolation">Aislamiento</label>
-                        <select name="isolation" id="isolation" class="form-control">
-                            <option value="si">Si</option>
-                            <option value="no">No</option>
-                        </select>
-
-                        <label for="changes">Cambios en la dieta</label>
-                        <select name="changes" id="changes" class="form-control">
-                            <option value="cancelada">CANCELADA</option>
-                            <option value="con_cambios">CON CAMBIOS</option>
-                            <option value="aislado">SE AISLÓ</option>
-                            <option value="ya_no_aislado">YA NO ESTA AISLADO</option>
-                        </select>
-
-                        <button type="submit" class="btn btn-dark px-3 py-1 mt-3 rounded float-right">Guardar</button>
+                        <x-form-diet :diet="null"/>
                     </form>
 
                 </div>

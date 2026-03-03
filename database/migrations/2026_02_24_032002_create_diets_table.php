@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('pacientes', function (Blueprint $table) {
-            $table->boolean('confirmed')->default(false)->after('changes');
+        Schema::create('diets', function (Blueprint $table) {
+            $table->id();
+            $table->string('habitation');
+            $table->string('name_patient');
+            $table->boolean('confirmed')->default(false);
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('pacientes', function (Blueprint $table) {
-            $table->dropColumn('confirmed');
-        });
+        Schema::dropIfExists('diets');
     }
 };

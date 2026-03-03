@@ -25,14 +25,16 @@ Route::middleware([
 ])->group(function () {
     Route::get('/dashboard', function () {
 
-        $pacientes = App\Models\Paciente::all();
+        $diets = App\Models\Diet::all();
         if (Auth::user()->hasRole('despachador')) {
-            return view('dashboard-live');
+            return view('dashboard-dispatcher');
         }else {
-            return view('dashboard', compact('pacientes'));
+            return view('dashboard', compact('diets'));
         }
         // return view('dashboard-live');
     })->name('dashboard');
 
+    Route::post('/dietas', [App\Http\Controllers\DietController::class, 'createDiet'])->name('dietas.create');
+    Route::put('/dietas/{diet}/version', [App\Http\Controllers\DietController::class, 'createNewVersionDiet'])->name('dietas.update');
+
 });
-    Route::post('/pacientes', [App\Http\Controllers\PacienteController::class, 'savePaciente'])->name('pacientes.save');

@@ -5,14 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Paciente extends Model
+class DietHistory extends Model
 {
     use HasFactory;
+
     protected $guarded = [];
     protected $casts = [
         'timeFood' => 'array',
+        'consistency' => 'array',
         'specifications' => 'array',
-        'changes' => 'array',
     ];
 
     public function getTimeFoodArrayAttribute()
@@ -21,7 +22,6 @@ class Paciente extends Model
             ? $this->timeFood
             : json_decode($this->timeFood, true) ?? [];
     }
-
     public function getConsistencyArrayAttribute()
     {
         return is_array($this->consistency)
@@ -34,5 +34,15 @@ class Paciente extends Model
         return is_array($this->specifications)
             ? $this->specifications
             : json_decode($this->specifications, true) ?? [];
+    }
+
+    public function diet()
+    {
+        return $this->belongsTo(Diet::class, 'diet_id');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }
