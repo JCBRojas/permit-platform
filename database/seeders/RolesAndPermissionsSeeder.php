@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -47,10 +48,27 @@ class RolesAndPermissionsSeeder extends Seeder
             'generateFiles',
         ]);
 
-        $user = User::find(1);
-        if ($user) {
-            $user->givePermissionTo('createDiets');
-        }
+          // Crear usuario Nutricionista
+        $userNutricionista = User::firstOrCreate(
+            ['email' => 'camilo@gmail.com'],
+            [
+                'name' => 'Nutricionista Principal',
+                'password' => Hash::make('12345678')
+            ]
+        );
+
+        $userNutricionista->assignRole($nutricionista);
+
+        // Crear usuario Despachador
+        $userDespachador = User::firstOrCreate(
+            ['email' => 'mariana@gmail.com'],
+            [
+                'name' => 'Despachador Principal',
+                'password' => Hash::make('123123123')
+            ]
+        );
+
+        $userDespachador->assignRole($despachador);
 
     }
 }
