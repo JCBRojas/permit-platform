@@ -1,19 +1,33 @@
-<div>
+<div x-data="{ tab: 'active' }">
 
-    {{-- ===================== TABLA ===================== --}}
-    <div class="bg-white shadow rounded p-6">
-        <h1 class="mb-4 font-semibold">Pacientes</h1>
+    {{-- ===================== CONTROLES ===================== --}}
+    <div class="flex gap-2 mb-4">
 
-        @php
-        $changeColors = [
-        'cancelada' => 'bg-red-100 text-red-800',
-        'con_cambios' => 'bg-yellow-100 text-yellow-800',
-        'aislado' => 'bg-purple-100 text-purple-800',
-        'ya_no_aislado' => 'bg-green-100 text-green-800',
-        ];
-        @endphp
+        <button @click="tab='active'" :class="tab === 'active' ? 'bg-blue-600 text-white' : 'bg-gray-200'"
+            class="px-4 py-2 rounded text-sm font-medium">
+            Dietas Activas
+        </button>
+
+        <button @click="tab='cancelled'" :class="tab === 'cancelled' ? 'bg-red-600 text-white' : 'bg-gray-200'"
+            class="px-4 py-2 rounded text-sm font-medium">
+            Dietas Canceladas
+        </button>
+
+    </div>
+
+    @php
+    $activeDiets = $diets->where('currentVersion.changes','!=','cancelada');
+    $cancelledDiets = $diets->where('currentVersion.changes','cancelada');
+    @endphp
+
+
+    {{-- ===================== TABLA ACTIVAS ===================== --}}
+    <div x-show="tab === 'active'" class="bg-white shadow rounded p-6">
+
+        <h1 class="mb-4 font-semibold">Dietas Activas</h1>
 
         <div class="overflow-x-auto" wire:poll.3s>
+
             <table class="min-w-full divide-y divide-gray-200">
 
                 <thead class="bg-gray-50">
@@ -27,150 +41,71 @@
                         <th class="px-3 py-2 text-xs">Observaciones</th>
                         <th class="px-3 py-2 text-xs">Aislamiento</th>
                         <th class="px-3 py-2 text-xs">Cambios</th>
+                        {{-- <th class="px-3 py-2 text-xs">Acción</th> --}}
                     </tr>
                 </thead>
 
                 <tbody class="divide-y divide-gray-200">
 
-                    @foreach ($diets as $diet)
+                    @foreach ($activeDiets as $diet)
 
                     @php
                     $changes = $diet->version_changes ?? [];
                     $current = $diet->currentVersion;
                     @endphp
 
-                    <tr class="{{ !empty($changes) ? 'bg-yellow-50 border-l-4 border-yellow-400' : '' }}">
+                    <tr class="{{ $changes ? 'bg-yellow-50 border-l-4 border-yellow-400' : '' }}">
 
                         <td class="px-3 py-2 text-xs">{{ $diet->id }}</td>
                         <td class="px-3 py-2 text-xs">{{ $diet->habitation }}</td>
                         <td class="px-3 py-2 text-xs">{{ $diet->name_patient }}</td>
 
-                        {{-- ===================== TIME FOOD ===================== --}}
+                        {{-- TIEMPO --}}
+                        <x-badges :items="$current->timeFood ?? []" :changes="$changes['timeFood'] ?? null"
+                            color="primary" />
+
+                        {{-- CONSISTENCIA --}}
+                        <x-badges :items="$current->consistency ?? []" :changes="$changes['consistency'] ?? null"
+                            color="info" />
+
+                        {{-- ESPECIFICACIONES --}}
+                        <x-badges :items="$current->specifications ?? []" :changes="$changes['specifications'] ?? null"
+                            color="success" />
+
+                        {{-- OBSERVACIONES --}}
                         <td class="px-3 py-2 text-xs">
-
-                            @forelse ($current->timeFood ?? [] as $item)
-
-                            <span class="badge
-                                    {{ isset($changes['timeFood']) ? 'badge-light-success' : 'badge-light-primary' }}">
-                                {{ ucfirst(str_replace('_',' ',$item)) }}
-                            </span>
-
-                            @empty
-                            <span class="text-gray-400">N/A</span>
-                            @endforelse
-
-                            @if(isset($changes['timeFood']))
-                            <div class="text-xs text-gray-500 mt-1">
-
-                                Antes:
-
-                                @foreach((array) $changes['timeFood']['old'] as $old)
-
-                                <span class="badge badge-light-danger">
-                                <s>{{ ucfirst(str_replace('_',' ',$old)) }}</s>
-                                </span>
-
-                                @endforeach
-
-                            </div>
-                            @endif
-
-                        </td>
-
-                        {{-- ===================== CONSISTENCIA ===================== --}}
-                        <td class="px-3 py-2 text-xs">
-
-                            @forelse ($current->consistency ?? [] as $item)
-
-                            <span class="badge
-                                    {{ isset($changes['consistency']) ? 'badge-light-success' : 'badge-light-info' }}">
-                                {{ ucfirst(str_replace('_',' ',$item)) }}
-                            </span>
-
-                            @empty
-                            <span class="text-gray-400">N/A</span>
-                            @endforelse
-
-                            @if(isset($changes['consistency']))
-                            <div class="text-xs text-gray-500 mt-1">
-                                Antes:
-
-                                @foreach($changes['consistency']['old'] ?? [] as $old)
-                                <span class="badge badge-light-danger">
-                                   <s>{{ ucfirst(str_replace('_',' ',$old)) }}</s>
-                                </span>
-                                @endforeach
-                            </div>
-                            @endif
-
-                        </td>
-
-                        {{-- ===================== ESPECIFICACIONES ===================== --}}
-                        <td class="px-3 py-2 text-xs">
-
-                            @forelse ($current->specifications ?? [] as $item)
-
-                            <span
-                                class="badge
-                                    {{ isset($changes['specifications']) ? 'badge-light-success' : 'badge-light-success' }}">
-                                {{ ucfirst(str_replace('_',' ',$item)) }}
-                            </span>
-
-                            @empty
-                            <span class="text-gray-400">N/A</span>
-                            @endforelse
-
-                            @if(isset($changes['specifications']))
-                            <div class="text-xs text-gray-500 mt-1">
-                                Antes:
-
-                                @foreach($changes['specifications']['old'] ?? [] as $old)
-                                <span class="badge badge-light-danger">
-                                  <s>{{ ucfirst(str_replace('_',' ',$old)) }}</s>
-                                </span>
-                                @endforeach
-                            </div>
-                            @endif
-
-                        </td>
-
-                        {{-- ===================== OBSERVACIONES ===================== --}}
-                        <td class="px-3 py-2 text-xs">
-
                             <span class="{{ isset($changes['observations']) ? 'text-yellow-600 font-semibold' : '' }}">
                                 {{ $current->observations ?? '' }}
                             </span>
-
                         </td>
 
-                        {{-- ===================== AISLAMIENTO ===================== --}}
+                        {{-- AISLAMIENTO --}}
                         <td class="px-3 py-2 text-xs">
-
                             <span class="{{ isset($changes['isolation']) ? 'text-yellow-600 font-semibold' : '' }}">
                                 {{ $current->isolation ?? '' }}
                             </span>
-
                         </td>
 
-                        {{-- ===================== CAMBIOS ===================== --}}
-                        <td class="px-3 py-2 text-xs">
+                        {{-- CAMBIOS --}}
+                        <x-change-color :type="$current->changes ?? null">
+                            {{ strtoupper(str_replace('_',' ', $current->changes ?? '')) }}
+                        </x-change-color>
 
-                            @php
-                            $change = $current->changes ?? null;
-                            @endphp
+                        {{-- ACCIÓN --}}
+                        {{-- <td class="px-3 py-2 text-xs">
 
-                            @if($change)
-
-                            <span class="px-2 py-1 rounded text-xs
-                                    {{ $changeColors[$change] ?? 'bg-gray-100 text-gray-800' }}">
-
-                                {{ strtoupper(str_replace('_',' ', $change)) }}
-
+                            @if($changes)
+                            <button wire:click="confirmChanges({{ $diet->id }})"
+                                class="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">
+                                Confirmar
+                            </button>
+                            @else
+                            <span class="text-gray-400 text-xs">
+                                Sin cambios
                             </span>
-
                             @endif
 
-                        </td>
+                        </td> --}}
 
                     </tr>
 
@@ -179,7 +114,85 @@
                 </tbody>
 
             </table>
+
         </div>
+
+    </div>
+
+
+    {{-- ===================== TABLA CANCELADAS ===================== --}}
+    <div x-show="tab === 'cancelled'" class="bg-white shadow rounded p-6">
+
+        <h1 class="mb-4 font-semibold text-red-600">
+            Dietas Canceladas
+        </h1>
+
+        <div class="overflow-x-auto">
+
+            <table class="min-w-full divide-y divide-gray-200">
+
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2 text-xs">ID</th>
+                        <th class="px-3 py-2 text-xs">Habitación</th>
+                        <th class="px-3 py-2 text-xs">Paciente</th>
+                        <th class="px-3 py-2 text-xs">Observaciones</th>
+                        <th class="px-3 py-2 text-xs">Estado</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-gray-200">
+
+                    @forelse ($cancelledDiets as $diet)
+
+                    @php
+                    $current = $diet->currentVersion;
+                    @endphp
+
+                    <tr class="bg-red-50 border-l-4 border-red-400">
+
+                        <td class="px-3 py-2 text-xs">
+                            {{ $diet->id }}
+                        </td>
+
+                        <td class="px-3 py-2 text-xs">
+                            {{ $diet->habitation }}
+                        </td>
+
+                        <td class="px-3 py-2 text-xs">
+                            {{ $diet->name_patient }}
+                        </td>
+
+                        <td class="px-3 py-2 text-xs">
+                            {{ $current->observations ?? 'N/A' }}
+                        </td>
+
+                        <td class="px-3 py-2 text-xs">
+
+                            <span class="px-2 py-1 rounded text-xs bg-red-100 text-red-800">
+                                CANCELADA
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+                    @empty
+
+                    <tr>
+                        <td colspan="5" class="px-3 py-4 text-center text-gray-400 text-sm">
+                            No hay dietas canceladas
+                        </td>
+                    </tr>
+
+                    @endforelse
+
+                </tbody>
+
+            </table>
+
+        </div>
+
     </div>
 
 </div>

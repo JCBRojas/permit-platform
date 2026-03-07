@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DietController;
 use App\Models\Diet;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -34,7 +35,9 @@ Route::middleware([
         }
     })->name('dashboard');
 
-    Route::post('/dietas', [App\Http\Controllers\DietController::class, 'createDiet'])->name('dietas.create');
-    Route::put('/dietas/{diet}/version', [App\Http\Controllers\DietController::class, 'createNewVersionDiet'])->name('dietas.update');
+    Route::post('/dietas', [DietController::class, 'createDiet'])->name('dietas.create');
+    Route::put('/dietas/{diet}/version', [DietController::class, 'createNewVersionDiet'])->name('dietas.update');
+    Route::get('/diet-reports', [DietController::class,'nutritionReport'])
+    ->name('diet.reports');
 
 });
