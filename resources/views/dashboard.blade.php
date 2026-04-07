@@ -184,9 +184,8 @@
                                             <th class="text-right">Acciones</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <template x-if="tab==='active'">
-                                           @foreach ($diets->where('status', '1') as $diet)
+                                    <tbody x-show="tab === 'active'">
+                                           @foreach ($activeDiets as $diet)
                                                 <tr>
                                                     <td><span class="room-badge">{{ $diet->habitation }}</span></td>
                                                     <td>{{ $diet->name_patient }}</td>
@@ -218,9 +217,10 @@
                                                         <button class="btn btn-primary btn-sm" data-toggle="modal" data-target=".edit-diet{{ $diet->id }}-modal-lg">Editar</button>
                                                     </td>
                                                 </tr>
+                                                <x-modal-edit-diets :diet="$diet" />
                                             @endforeach
-                                        </template>
-                                        <template x-if="tab==='cancelled'">
+                                    </tbody>
+                                        <tbody x-show="tab==='cancelled'">
                                             @foreach($cancelledDiets as $diet)
                                                 <tr class="cancelled-row">
                                                     <td><span class="room-badge">{{ $diet->habitation }}</span></td>
@@ -254,139 +254,13 @@
                                                     </td>
                                                 </tr>
                                             @endforeach
-                                        </template>
-                                        <template x-if="tab==='all'">
-                                            @foreach($diets as $diet)
-                                                <tr>
-                                                    <td><span class="room-badge">{{ $diet->habitation }}</span></td>
-                                                    <td>{{ $diet->name_patient }}</td>
-                                                    <td>
-                                                        @forelse ($diet->currentVersion->timeFood ?? [] as $item)
-                                                            <span class="tag tag-tiempo">{{ ucfirst(str_replace('_', ' ', $item)) }}</span>
-                                                        @empty
-                                                            <span>—</span>
-                                                        @endforelse
-                                                    </td>
-                                                    <td>
-                                                        @forelse ($diet->currentVersion->consistency ?? [] as $item)
-                                                            <span class="tag tag-consist">{{ ucfirst(str_replace('_', ' ', $item)) }}</span>
-                                                        @empty
-                                                            <span>—</span>
-                                                        @endforelse
-                                                    </td>
-                                                    <td>
-                                                        @forelse ($diet->currentVersion->specifications ?? [] as $item)
-                                                            <span class="tag tag-espec">{{ ucfirst(str_replace('_', ' ', $item)) }}</span>
-                                                        @empty
-                                                            <span>—</span>
-                                                        @endforelse
-                                                    </td>
-                                                    <td>{{ $diet->currentVersion->observations ?? '—' }}</td>
-                                                    <td>{{ $diet->currentVersion->isolation ?? 'No' }}</td>
-                                                    <td>{{ $diet->currentVersion->changes ?? 'N/A' }}</td>
-                                                    <td class="text-right">
-                                                        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target=".edit-diet{{ $diet->id }}-modal-lg">Editar</button>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </template>
-                                    </tbody>
+                                        </tbody>
+
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
-                            <table class="table-wrap">
-
-                                <thead class="" style="">
-                                    <tr>
-                                        <th class=" text-xs">Hab.</th>
-                                        <th class=" text-xs">Paciente</th>
-                                        <th class=" text-xs">Tiempo</th>
-                                        <th class=" text-xs">Consistencia</th>
-                                        <th class=" text-xs">Especificaciones</th>
-                                        <th class=" text-xs">Observaciones</th>
-                                        <th class=" text-xs">Aislamiento</th>
-                                        <th class=" text-xs">Cambios</th>
-                                        <th class=" text-xs text-right">Acciones</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody class="divide-y divide-gray-200">
-                                    @foreach ($diets->where('status', '1') as $diet)
-                                    <tr>
-                                        <td><span class="room-badge">{{ $diet->habitation }}</span></td>
-                                        <td>{{ $diet->name_patient }}</td>
-                                        <td>
-                                            @forelse ($diet->currentVersion->timeFood ?? [] as $item)
-                                            <small class="badge badge-light-info">
-                                                {{ ucfirst(str_replace('_', ' ', $item)) }}
-                                            </small>
-                                            @empty
-                                            <span class="text-gray-400">N/A</span>
-                                            @endforelse
-                                        </td>
-                                        <td class="px-3 py-2 text-xs">
-                                            @forelse ($diet->currentVersion->consistency ?? [] as $item)
-                                            <small class="badge badge-light-info">
-                                                {{ ucfirst(str_replace('_', ' ', $item)) }}
-                                            </small>
-                                            @empty
-                                            <span class="text-gray-400">N/A</span>
-                                            @endforelse
-                                        </td>
-                                        <td class="px-3 py-2 text-xs">
-                                            @forelse ($diet->currentVersion->specifications ?? [] as $item)
-                                            <small class="badge badge-light-primary">
-                                                {{ ucfirst(str_replace('_', ' ', $item)) }}
-                                            </small>
-                                            @empty
-                                            <span class="text-gray-400">N/A</span>
-                                            @endforelse
-                                        </td>
-                                        <td class="px-3 py-2 text-xs">{{ $diet->currentVersion->observations ?? '' }}
-                                        </td>
-                                        <td class="px-3 py-2 text-xs">
-                                            {{ $diet->currentVersion->isolation ?? '' }}
-                                        </td>
-                                        <td class="px-3 py-2 text-xs">{{ $diet->currentVersion->changes ?? '' }}</td>
-                                        <td class="px-3 py-2 text-xs text-right">
-                                            <button type="button" class="btn btn-xs btn-circle btn-outline-primary" data-toggle="modal"
-                                                data-target=".edit-diet{{ $diet->id }}-modal-lg">
-                                                <span class=" mdi mdi-square-edit-outline ">edit</span>
-                                            </button>
-                                            <div class="modal fade edit-diet{{ $diet->id }}-modal-lg  text-left"
-                                                tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
-                                                aria-hidden="true" style="display: none;">
-                                                <div class="modal-dialog modal-lg">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h4 class="modal-title" id="myLargeModalLabel">Editar Dieta
-                                                            </h4>
-                                                            <button type="button" class="close" data-dismiss="modal"
-                                                                aria-hidden="true">×</button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <form
-                                                                action="{{ route('dietas.update', ['diet' => $diet->id]) }}"
-                                                                method="POST">
-                                                                @csrf
-                                                                @method('PUT')
-                                                                <x-form-diet :diet="$diet" />
-                                                            </form>
-
-                                                        </div>
-                                                    </div><!-- /.modal-content -->
-                                                </div><!-- /.modal-dialog -->
-                                            </div><!-- /.modal -->
-                                            {{-- <button type="button" class="btn btn-ghost btn-sm" >Eliminar</button>
-                                            --}}
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
                 </div>
 
@@ -399,6 +273,8 @@
 
 
     </div>
+
+
 
     <!--  Modal content for the above example -->
     <div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"

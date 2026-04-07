@@ -25,15 +25,17 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', function () {
+     // 🔵 NUTRICIONISTA
+    Route::middleware(['role:nutricionista'])->group(function () {
+        Route::get('/dashboard/nutrition', [DietController::class, 'nutritionDashboard'])
+            ->name('dashboard.nutrition');
+    });
 
-        $diets = Diet::all();
-        if (Auth::user()->hasRole('despachador')) {
-            return view('dashboard-dispatcher');
-        }else {
-            return view('dashboard', compact('diets'));
-        }
-    })->name('dashboard');
+    // 🟢 DESPACHADOR
+    Route::middleware(['role:despachador'])->group(function () {
+        Route::get('/dashboard/dispatch', [DietController::class, 'dispatcherDashboard'])
+            ->name('dashboard.dispatch');
+    });
 
     Route::post('/dietas', [DietController::class, 'createDiet'])->name('dietas.create');
     Route::put('/dietas/{diet}/version', [DietController::class, 'createNewVersionDiet'])->name('dietas.update');

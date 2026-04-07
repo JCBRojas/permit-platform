@@ -40,229 +40,223 @@ class DietController extends Controller
         return redirect()->back()->with('success', 'Dieta actualizada');
     }
 
+    public function nutritionDashboard()
+    {
+         $diets = Diet::all();
+       return view('dashboard', compact('diets'));
+    }
+
+     public function dispatcherDashboard()
+    {
+        return view('dashboard-dispatcher');
+    }
 
     public function index()
-{
+    {
+        /*
+        -----------------------------
+        PRODUCCIÓN DE COCINA HOY
+        -----------------------------
+        */
+        $kitchenToday = DB::select("
+            SELECT
+            tipo_dieta,
+            SUM(tiempo_comida='desayuno') AS desayuno,
+            SUM(tiempo_comida='media_manana') AS media_manana,
+            SUM(tiempo_comida='almuerzo') AS almuerzo,
+            SUM(tiempo_comida='algo') AS algo,
+            SUM(tiempo_comida='merienda') AS merienda,
+            SUM(tiempo_comida='cena') AS cena
 
-/*
------------------------------
-PRODUCCIÓN DE COCINA HOY
------------------------------
-*/
+            FROM diet_meal_report_view
 
-$kitchenToday = DB::select("
-SELECT
+            WHERE DATE(created_at)=CURDATE()
 
-tipo_dieta,
+            GROUP BY tipo_dieta
+            ORDER BY tipo_dieta
+            ");
 
-SUM(tiempo_comida='desayuno') AS desayuno,
-SUM(tiempo_comida='media_manana') AS media_manana,
-SUM(tiempo_comida='almuerzo') AS almuerzo,
-SUM(tiempo_comida='algo') AS algo,
-SUM(tiempo_comida='merienda') AS merienda,
-SUM(tiempo_comida='cena') AS cena
+        /*
+        -----------------------------
+        TOTALES GLOBALES
+        -----------------------------
+        */
 
-FROM diet_meal_report_view
+            $global = DB::select("
+            SELECT
 
-WHERE DATE(created_at)=CURDATE()
+            tipo_dieta,
 
-GROUP BY tipo_dieta
-ORDER BY tipo_dieta
-");
+            SUM(tiempo_comida='desayuno') AS desayuno,
+            SUM(tiempo_comida='media_manana') AS media_manana,
+            SUM(tiempo_comida='almuerzo') AS almuerzo,
+            SUM(tiempo_comida='algo') AS algo,
+            SUM(tiempo_comida='merienda') AS merienda,
+            SUM(tiempo_comida='cena') AS cena,
+            SUM(tiempo_comida='fraccionada') AS fraccionada,
 
+            COUNT(*) AS total_bandejas
 
-/*
------------------------------
-TOTALES GLOBALES
------------------------------
-*/
+            FROM diet_meal_report_view
 
-$global = DB::select("
-SELECT
+            WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())
 
-tipo_dieta,
-
-SUM(tiempo_comida='desayuno') AS desayuno,
-SUM(tiempo_comida='media_manana') AS media_manana,
-SUM(tiempo_comida='almuerzo') AS almuerzo,
-SUM(tiempo_comida='algo') AS algo,
-SUM(tiempo_comida='merienda') AS merienda,
-SUM(tiempo_comida='cena') AS cena,
-SUM(tiempo_comida='fraccionada') AS fraccionada,
-
-COUNT(*) AS total_bandejas
-
-FROM diet_meal_report_view
-
-WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())
-
-GROUP BY tipo_dieta
-");
+            GROUP BY tipo_dieta
+            ");
 
 
-/*
------------------------------
-PRODUCCIÓN MENSUAL
------------------------------
-*/
+        /*
+        -----------------------------
+        PRODUCCIÓN MENSUAL
+        -----------------------------
+        */
 
-$monthly = DB::select("
-SELECT
+        $monthly = DB::select("
+            SELECT
 
-DATE_FORMAT(created_at,'%Y-%m') AS mes,
+            DATE_FORMAT(created_at,'%Y-%m') AS mes,
 
-SUM(tiempo_comida='desayuno') AS desayuno,
-SUM(tiempo_comida='media_manana') AS media_manana,
-SUM(tiempo_comida='almuerzo') AS almuerzo,
-SUM(tiempo_comida='algo') AS algo,
-SUM(tiempo_comida='merienda') AS merienda,
-SUM(tiempo_comida='cena') AS cena
+            SUM(tiempo_comida='desayuno') AS desayuno,
+            SUM(tiempo_comida='media_manana') AS media_manana,
+            SUM(tiempo_comida='almuerzo') AS almuerzo,
+            SUM(tiempo_comida='algo') AS algo,
+            SUM(tiempo_comida='merienda') AS merienda,
+            SUM(tiempo_comida='cena') AS cena
 
-FROM diet_meal_report_view
+            FROM diet_meal_report_view
 
-GROUP BY mes
-ORDER BY mes DESC
-");
-
-
-return view('reports-diets',[
-'kitchenToday'=>$kitchenToday,
-'global'=>$global,
-'monthly'=>$monthly
-]);
-
-}
+            GROUP BY mes
+            ORDER BY mes DESC
+            ");
 
 
-public function nutritionReport()
-{
-
-/*
---------------------------------
-BASE QUERY (última versión dieta)
---------------------------------
-*/
-
-$baseQuery = "
-SELECT 
-d.created_at,
-
-JSON_CONTAINS(dv.timeFood,'\"desayuno\"') AS desayuno,
-JSON_CONTAINS(dv.timeFood,'\"media_manana\"') AS media_manana,
-JSON_CONTAINS(dv.timeFood,'\"almuerzo\"') AS almuerzo,
-JSON_CONTAINS(dv.timeFood,'\"algo\"') AS algo,
-JSON_CONTAINS(dv.timeFood,'\"cena\"') AS cena,
-JSON_CONTAINS(dv.timeFood,'\"fraccionada\"') AS fraccionada
-
-FROM diet_histories dv
-JOIN diets d ON d.id = dv.diet_id
-
-WHERE dv.version = (
-    SELECT MAX(version)
-    FROM diet_histories
-    WHERE diet_id = dv.diet_id
-)
-AND d.status = true
-";
+        return view('reports-diets', [
+            'kitchenToday' => $kitchenToday,
+            'global' => $global,
+            'monthly' => $monthly
+        ]);
+    }
 
 
+    public function nutritionReport()
+    {
 
-/*
---------------------------------
-TOTALES DIARIOS
---------------------------------
-*/
+        /*
+        --------------------------------
+        BASE QUERY (última versión dieta)
+        --------------------------------
+        */
 
-$dailyTotals = DB::select("
-SELECT
+        $baseQuery = "
+            SELECT 
+            d.created_at,
 
-DATE(created_at) AS fecha,
+            JSON_CONTAINS(dv.timeFood,'\"desayuno\"') AS desayuno,
+            JSON_CONTAINS(dv.timeFood,'\"media_manana\"') AS media_manana,
+            JSON_CONTAINS(dv.timeFood,'\"almuerzo\"') AS almuerzo,
+            JSON_CONTAINS(dv.timeFood,'\"algo\"') AS algo,
+            JSON_CONTAINS(dv.timeFood,'\"cena\"') AS cena,
+            JSON_CONTAINS(dv.timeFood,'\"fraccionada\"') AS fraccionada
 
-SUM(desayuno) AS desayuno,
-SUM(media_manana) AS media_manana,
-SUM(almuerzo) AS almuerzo,
-SUM(algo) AS algo,
-SUM(cena) AS cena,
-SUM(fraccionada) AS fraccionada
+            FROM diet_histories dv
+            JOIN diets d ON d.id = dv.diet_id
 
-FROM ($baseQuery) t
+            WHERE dv.version = (
+                SELECT MAX(version)
+                FROM diet_histories
+                WHERE diet_id = dv.diet_id
+            )
+            AND d.status = true
+            ";
+        /*
+        --------------------------------
+        TOTALES DIARIOS
+        --------------------------------
+        */
 
-where MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())
-GROUP BY fecha
-ORDER BY fecha DESC
-");
+        $dailyTotals = DB::select("
+            SELECT
 
+            DATE(created_at) AS fecha,
 
+            SUM(desayuno) AS desayuno,
+            SUM(media_manana) AS media_manana,
+            SUM(almuerzo) AS almuerzo,
+            SUM(algo) AS algo,
+            SUM(cena) AS cena,
+            SUM(fraccionada) AS fraccionada
 
-/*
---------------------------------
-TOTALES MENSUALES
---------------------------------
-*/
+            FROM ($baseQuery) t
 
-$monthlyTotals = DB::select("
-SELECT
+            where MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())
+            GROUP BY fecha
+            ORDER BY fecha DESC
+            ");
 
-DATE_FORMAT(created_at,'%Y-%m') AS mes,
+        /*
+        --------------------------------
+        TOTALES MENSUALES
+        --------------------------------
+        */
 
-SUM(desayuno) AS desayuno,
-SUM(media_manana) AS media_manana,
-SUM(almuerzo) AS almuerzo,
-SUM(algo) AS algo,
-SUM(cena) AS cena,
-SUM(fraccionada) AS fraccionada
+        $monthlyTotals = DB::select("
+            SELECT
 
-FROM ($baseQuery) t
+            DATE_FORMAT(created_at,'%Y-%m') AS mes,
 
-GROUP BY mes
-ORDER BY mes DESC
-");
+            SUM(desayuno) AS desayuno,
+            SUM(media_manana) AS media_manana,
+            SUM(almuerzo) AS almuerzo,
+            SUM(algo) AS algo,
+            SUM(cena) AS cena,
+            SUM(fraccionada) AS fraccionada
 
+            FROM ($baseQuery) t
 
+            GROUP BY mes
+            ORDER BY mes DESC
+            ");
 
-/*
---------------------------------
-TOTALES GLOBALES
---------------------------------
-*/
+        /*
+        --------------------------------
+        TOTALES GLOBALES
+        --------------------------------
+        */
 
-$globalTotals = DB::selectOne("
-SELECT
+        $globalTotals = DB::selectOne("
+            SELECT
 
-SUM(desayuno) AS desayuno,
-SUM(almuerzo) AS almuerzo,
-SUM(cena) AS cena,
-SUM(fraccionada) AS fraccionada
+            SUM(desayuno) AS desayuno,
+            SUM(almuerzo) AS almuerzo,
+            SUM(cena) AS cena,
+            SUM(fraccionada) AS fraccionada
 
-FROM ($baseQuery) t
-");
+            FROM ($baseQuery) t
+            ");
+
+        /*
+        --------------------------------
+        DATOS PARA GRÁFICOS
+        --------------------------------
+        */
+
+        $chartLabels = array_column($monthlyTotals, 'mes');
+        $chartBreakfast = array_column($monthlyTotals, 'desayuno');
+        $chartLunch = array_column($monthlyTotals, 'almuerzo');
+        $chartDinner = array_column($monthlyTotals, 'cena');
 
 
 
-/*
---------------------------------
-DATOS PARA GRÁFICOS
---------------------------------
-*/
-
-$chartLabels = array_column($monthlyTotals,'mes');
-$chartBreakfast = array_column($monthlyTotals,'desayuno');
-$chartLunch = array_column($monthlyTotals,'almuerzo');
-$chartDinner = array_column($monthlyTotals,'cena');
-
-
-
-return view('reports-diets-nutricion',[
-'dailyTotals'=>$dailyTotals,
-'monthlyTotals'=>$monthlyTotals,
-'globalTotals'=>$globalTotals,
-'chartLabels'=>$chartLabels,
-'chartBreakfast'=>$chartBreakfast,
-'chartLunch'=>$chartLunch,
-'chartDinner'=>$chartDinner
-]);
-
-}
+        return view('reports-diets-nutricion', [
+            'dailyTotals' => $dailyTotals,
+            'monthlyTotals' => $monthlyTotals,
+            'globalTotals' => $globalTotals,
+            'chartLabels' => $chartLabels,
+            'chartBreakfast' => $chartBreakfast,
+            'chartLunch' => $chartLunch,
+            'chartDinner' => $chartDinner
+        ]);
+    }
 
     // end 
 }

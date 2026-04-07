@@ -438,7 +438,7 @@
 
             {{-- Logo --}}
             <div style="flex-shrink:0; display:flex; align-items:center;">
-                <a href="{{ route('dashboard') }}" class="nt-logo">
+                <a href="" class="nt-logo">
                     {{-- Reemplaza con tu <x-application-mark /> si tienes logo SVG --}}
                     <span class="nt-logo-dot"></span>
                     <span class="nt-logo-text">NutriTrack</span>
@@ -448,7 +448,7 @@
             {{-- Links de navegación (desktop) --}}
             <div class="nt-nav-links">
 
-                <a href="{{ route('dashboard') }}"
+                <a href=""
                    class="nt-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <rect x="3" y="3" width="7" height="7" rx="1"/>
@@ -688,7 +688,7 @@
         {{-- Links de navegación --}}
         <div class="nt-mobile-nav-section">{{ __('Principal') }}</div>
 
-        <a href="{{ route('dashboard') }}"
+        <a href=""
            class="nt-mobile-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <rect x="3" y="3" width="7" height="7" rx="1"/>
