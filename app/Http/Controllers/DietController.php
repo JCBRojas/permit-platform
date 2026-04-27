@@ -258,5 +258,13 @@ class DietController extends Controller
         ]);
     }
 
-    // end 
+    // end
+    
+    public function store(StoreDietRequest $request)
+    {
+        // dd($request->all());
+        $diet = $this->dietService->createDiet($request->validated(), auth()->id());
+        return redirect()->back()->with('success', 'Dieta creada');
+    }
+    
 }

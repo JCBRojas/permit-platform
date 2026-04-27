@@ -45,4 +45,5 @@ Route::middleware([
     Route::get('/entrega/canceladas', [EntregaController::class, 'canceladas'])->name('dietas.canceladas');
     Route::get('/entrega/historial', [EntregaController::class, 'historial'])->name('historial.index');
     Route::get('/entrega/reportes', [EntregaController::class, 'reportes'])->name('reportes.nutricional');
+    Route::post('/dietas', [DietController::class, 'store'])->name('dietas.store');
 });

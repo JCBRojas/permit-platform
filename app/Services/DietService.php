@@ -13,7 +13,9 @@ class DietService
      */
     public function createDiet(array $data, int $userId): Diet
     {
+        // dd($data['timeFood']);
         return DB::transaction(function () use ($data, $userId) {
+
 
             // 1️⃣ Crear cabecera
             $diet = Diet::create([
